@@ -6,7 +6,7 @@
 #include <string.h>
 #include "pilha.h"
 #include "compilador.h"
-#define TAM_PILHA 1000
+
 void VerificaPilha(pilha *p){
   if (!p){
       printf("Pilha nao alocada\n");
@@ -89,7 +89,7 @@ void  push(pilha *p, no* n){
   if (p->tamanho+1 >= p->capacidade)
    {
         p->capacidade *=2;
-        p->primeiro = (no*)realloc(p->primeiro,p->capacidade*sizeof(no));
+        p->primeiro = (no*)realloc(p->primeiro,p->capacidade*sizeof(no*));
    }
   p->primeiro[p->tamanho] = *n;
   p->tamanho++;

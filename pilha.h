@@ -1,6 +1,8 @@
 #ifndef PILHA__
 #define PILHA__
 
+#define TAM_PILHA 1000
+
 #define VS 0
 #define PROCEDIMENTO 1
 #define FUNCAO 2
