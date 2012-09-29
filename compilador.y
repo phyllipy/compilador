@@ -124,7 +124,6 @@ parte_declara_rotulos:
  NUMERO
 	{
     noTmp = criaRotulo(atoi(yytext),nivel);
-    printf("CRIEI UM ROTULO NO NIVEL %d\n",nivel);
     strcpy(noTmp->item.rot.rotulo,geraRotulo());
     push(ts,noTmp);
     noTmp = NULL;
@@ -766,45 +765,51 @@ identificador:
 %%
 
 int main (int argc, char** argv) {
-   FILE *fpent;
-   extern FILE *yyin;
+        FILE *fpent;
+        extern FILE *yyin;
+        char fname[128];
 
-   if (argc < 2) {
-         printf("Modo de uso: compilador <arq>");
-         return(-1);
-   }
+        if (argc < 2) {
+                printf("Modo de uso: compilador <arq>");
+                return(-1);
+        }
 
-   fpent = fopen (argv[1], "r");
-   if (fpent == NULL) {
-      printf("Modo de uso: compilador <arq>\n");
-      return(-1);
-   }
-   if (argc>2)
-           if (argv[2][1]=='o'){
-                   fp = fopen(argv[3],"w");
-                   if (argc!=4){
-                           printf("Faltando parametros para a opçao -o\n");
-                           printf("Modo de uso: compilador <arq> -o <out>\n");
-                           exit(1);
-                   }
-           }else{
-                   printf("Parametro invalido\n");
-           }
+        fpent = fopen (argv[1], "r");
+        if (fpent == NULL) {
+                printf("Modo de uso: compilador <arq>\n");
+                return(-1);
+        }
+        if (argc>2){
+                if (argv[2][1]=='o'){
+                        fp = fopen(argv[3],"w");
+                        if (argc!=4){
+                                printf("Faltando parametros para a opçao -o\n");
+                                printf("Modo de uso: compilador <arq> -o <out>\n");
+                                exit(1);
+                        }
+                        strcpy(fname,argv[3]);
+                }else{
+                        printf("Parametro invalido\n");
+                }
+        }else 
+                strcpy(fname,"MEPA");
 
-/* ------------------------------------------------------------------- */
-/*  Inicia a Tabela de Simbolos										                     */
-/* ------------------------------------------------------------------- */
-   
-   ts = criaPilha();
-   aux = criaPilha();
-   rotulos = criaPilha();
-   parametros = criaPilha();
-   contador_rotulo = 0;
-   yyin = fpent;
-   yyparse();
-      
-   fclose(fpent);
-//	imprimePilha(ts);
-        
-   return 0;
+        /* ------------------------------------------------------------------- */
+        /*  Inicia a Tabela de Simbolos										                     */
+        /* ------------------------------------------------------------------- */
+
+        ts = criaPilha();
+        aux = criaPilha();
+        rotulos = criaPilha();
+        parametros = criaPilha();
+        contador_rotulo = 0;
+        yyin = fpent;
+        yyparse();
+
+        fclose(fpent);
+
+        printf("Código gerado em: %s\n",fname);
+        //	imprimePilha(ts);
+
+        return 0;
 }
