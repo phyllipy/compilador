@@ -544,7 +544,7 @@ comando_repetitivo:
          rot1 = criaRotulo(s,nl);
          strcpy(rot1->item.rot.rotulo,s);
          sprintf(s, "NADA");
-         geraCodigo(NULL, s);
+         geraCodigo(rot1->item.rot.rotulo, s);
          push(rotulos,rot1);
  }
  expressao
