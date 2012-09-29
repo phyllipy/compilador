@@ -13,6 +13,22 @@ void VerificaPilha(pilha *p){
       exit(1);
   }
 }
+
+int contaDeslocamento(pilha *p, int nl){
+  int count=0;
+  int i = p->tamanho-1;
+  no tmp;
+  while (1){
+          tmp = p->primeiro[i];
+          if (tmp.nl < nl ) break;
+          if (tmp.categoria == VS && tmp.item.vs.passagem == SIMPLES){
+            count++;
+          }
+          i--;
+  }
+  return count;
+}
+
 int alterarTipos(pilha *p,int offset, int tipo){
   int i;
   int count=0;
@@ -125,13 +141,17 @@ no *criaRotulo(int label,int nivel){
 void imprimePilha(pilha *p){
   no tmp;
   int i;
+  int j;
   for (i=0;i<p->tamanho;i++){
           tmp = p->primeiro[i];
           printf("%s %d %d \t",tmp.nome, tmp.categoria,tmp.nl);
           if (p->primeiro[i].categoria == VS)
-                  printf("offset:%d\t",tmp.item.vs.offset);
-          if (p->primeiro[i].categoria == FUNCAO)
+                  printf("offset:%d\tpassagem: %d",tmp.item.vs.offset,tmp.item.vs.passagem);
+          if (p->primeiro[i].categoria == FUNCAO){
                   printf("offset:%d\tparams:%d",tmp.item.func.offset,tmp.item.func.qtdeParametros);
+                  for(j=0;j<tmp.item.func.qtdeParametros;j++)
+                          printf("\t p%d : %d",j,tmp.item.func.parametros[j].passagem);
+          }
           printf("\n");
   }
 }

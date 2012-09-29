@@ -110,4 +110,6 @@ void preencherTipo(pilha*,int,int);
 //remove os itens do nivel lexico mais alto
 int removeElementos(pilha*,int);
 
+//Pra contagem de variaeis alocadas dentro do nivel lexico
+int contaDeslocamento(pilha*,int);
 #endif

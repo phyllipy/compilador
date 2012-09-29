@@ -31,7 +31,6 @@ typedef enum simbolos {
   simb_and,
   simb_not,
   //palavras da linguagem
-  simb_call,
   simb_begin, //OK
   simb_do,
   simb_else,

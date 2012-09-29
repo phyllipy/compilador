@@ -17,6 +17,7 @@ int label = 0;
 char s[32];
 int i;
 int numParametros;
+int FLAG_CHAMADA=0;
 pilha *aux;
 pilha *rotulos;
 pilha *parametros;
@@ -26,7 +27,6 @@ no *noTmp;
 no *var;
 no *oi;
 no *rot1,*rot2;
-
 no *proc,*func;
 void yyerror (char const *s) {
 	
@@ -45,7 +45,7 @@ void yyerror (char const *s) {
 %token MAIOR_IGUAL MAIS MENOR MENOR_IGUAL MENOS NOT
 %token NUMERO OR PONTO PONTO_E_VIRGULA PONTO_PONTO
 %token PROCEDURE PROGRAM READ T_BEGIN T_END THEN VAR
-%token VEZES VIRGULA WHILE WRITE SLASH CALL
+%token VEZES VIRGULA WHILE WRITE SLASH 
 %%
 
 programa:
@@ -124,6 +124,7 @@ parte_declara_rotulos:
  NUMERO
 	{
     noTmp = criaRotulo(atoi(yytext),nivel);
+    printf("CRIEI UM ROTULO NO NIVEL %d\n",nivel);
     strcpy(noTmp->item.rot.rotulo,geraRotulo());
     push(ts,noTmp);
     noTmp = NULL;
@@ -189,7 +190,7 @@ declara_vars:
 tipo: IDENT
 ;
 
-lista_idents:	//TODO
+lista_idents:	
  identificador
  {
          if ( strcmp(yytext,"input") && strcmp(yytext,"output")){
@@ -201,7 +202,7 @@ lista_idents:	//TODO
  lista_idents_loop
 ;
 
-lista_idents_loop:	//TODO
+lista_idents_loop:	
  | VIRGULA identificador
  {
          if ( strcmp(yytext,"input") && strcmp(yytext,"output")){
@@ -243,6 +244,7 @@ declaracao_procedimento:
 
     push(ts,proc);
     //nivel++;
+    i= 0;
     while (parametros->tamanho){
           param = pop(parametros);
 
@@ -252,7 +254,8 @@ declaracao_procedimento:
           push(ts,criaVariavel(0,param->nome,nivel,offset,param->item.vs.passagem));
           offset--;
           proc->item.func.parametros[i] = param->item.vs;
-          i--;
+          //i--;
+          i++;
     }
     parametros->tamanho = 0;
     offset = 0;
@@ -261,7 +264,7 @@ declaracao_procedimento:
  bloco
 ;
 
-declaracao_funcao: //TODO
+declaracao_funcao: 
  FUNCTION
  {
  }
@@ -273,7 +276,7 @@ declaracao_funcao: //TODO
      sprintf(s,"ENPR %d",nivel);
      geraCodigo(func->item.func.rotulo,s);
  }
- parametros_formais_opt //TODO
+ parametros_formais_opt 
  {
     func->item.func.qtdeParametros = parametros->tamanho;
     offset = -4;
@@ -361,7 +364,8 @@ comando:
   /* o arquivo MEPA de saida do professor, nao coloca virgula entre os parametros do ENRT
    * assim, tirei pra adequar a saida    */
 	//	sprintf(s, "ENRT %d %d", nivel, offset);
-		sprintf(s, "ENRT %d %d", nivel, offset);
+	//	sprintf(s, "ENRT %d %d", nivel, offset);
+		sprintf(s, "ENRT %d %d", nivel, contaDeslocamento(ts,nivel));
 		geraCodigo(noTemp->item.rot.rotulo, s);
 
   }
@@ -430,17 +434,19 @@ comando_leitura_1_loop:
  | VIRGULA comando_leitura_1
 ;
 
-atribuicao: //TODO 
+atribuicao:  
  variavel
  {
     var = noTemp;
  }
  ATRIBUICAO expressao
 {
+        
         if (!var){
                 yyerror("Variavel nao declarada.");
                 exit(1);
         }
+
         if (var->categoria == FUNCAO){
           
   //              sprintf(s, "ARMZ %d, %d" , var->nl+1, var->item.func.offset);
@@ -481,7 +487,7 @@ lista_expressoes_opt:
  | ABRE_PARENTESES lista_expressoes FECHA_PARENTESES
 ;
 
-desvio: //DONE
+desvio: 
  GOTO NUMERO
 {
         noTemp = find(ts,yytext);
@@ -586,33 +592,42 @@ lista_expressoes_loop:
 
 expressao:
  expressao_simples
+
+ { if (proc || func ) numParametros++; }
  | expressao_simples IGUAL expressao_simples {
+  if (proc || func ) numParametros++; 
 	sprintf(s, "CMIG");
 	geraCodigo(NULL, s);
  }
  | expressao_simples DIFERENTE expressao_simples {
+  if (proc || func ) numParametros++; 
 	sprintf(s, "CMDG");
 	geraCodigo(NULL, s);
  }
  | expressao_simples MENOR expressao_simples {
+  if (proc || func ) numParametros++; 
 	sprintf(s, "CMME");
 	geraCodigo(NULL, s);
  }
  | expressao_simples MAIOR expressao_simples {
+  if (proc || func ) numParametros++; 
 	sprintf(s, "CMMA");
 	geraCodigo(NULL, s);
  }
  | expressao_simples MAIOR_IGUAL expressao_simples {
+  if (proc || func ) numParametros++; 
 	sprintf(s, "CMAG");
 	geraCodigo(NULL, s);
  }
  | expressao_simples MENOR_IGUAL expressao_simples {
+  if (proc || func ) numParametros++; 
 	sprintf(s, "CMEG");
 	geraCodigo(NULL, s);
  }
 ;
  
 expressao_simples:
+ 
  termo expressao_simples_loop
  | MAIS termo expressao_simples_loop
  | MENOS termo {
@@ -658,69 +673,46 @@ termo_loop:
  }
 ;
 
-fator: // =[
+fator: 
  variavel
- { 
-  
-         if (noTemp) {
-                 if ((proc) && numParametros >= proc->item.func.qtdeParametros ) {
-                         yyerror("Procedimento chamado com numero invalido de parametros.");
-                         exit(1);
-                 }
-                 if ((func) && numParametros > func->item.func.qtdeParametros ) {
-                         printf("esperado: %d, %d encontrados\n\n",func->item.func.qtdeParametros,numParametros);
-                         exit(1);
-                 }
-                 if ((proc) && proc->item.func.parametros[numParametros].passagem == REFERENCIA) {
-                         if (noTemp->item.vs.passagem == SIMPLES) {
-                                 sprintf(s, "CRVL %d, %d", noTemp->nl, noTemp->item.vs.offset);
-                                 geraCodigo(NULL, s);
-                         }
-                         else if (noTemp->item.vs.passagem == VALOR) {
-                                 sprintf(s, "CRVL %d, %d", noTemp->nl, noTemp->item.vs.offset);
-                                 geraCodigo(NULL, s);
-                         }
-                         else if (noTemp->item.vs.passagem == REFERENCIA) {
-                                 sprintf(s, "CREN %d, %d", noTemp->nl, noTemp->item.vs.offset);
-                                 geraCodigo(NULL, s);
-                         }
-                         numParametros++;
-                 }
-                 else 
-                         if ((func) && func->item.func.parametros[numParametros].passagem == REFERENCIA) {
-                                 if (noTemp->item.vs.passagem == SIMPLES) {
-                                         sprintf(s, "CRVL %d, %d", noTemp->nl, noTemp->item.vs.offset);
-                                         geraCodigo(NULL, s);
-                                 }
-                                 else if (noTemp->item.vs.passagem == VALOR) {
-                                         sprintf(s, "CRVL %d, %d", noTemp->nl, noTemp->item.vs.offset);
-                                         geraCodigo(NULL, s);
-                                 }
-                                 else if (noTemp->item.vs.passagem == REFERENCIA) {
-                                         sprintf(s, "CREN %d, %d", noTemp->nl, noTemp->item.vs.offset);
-                                         geraCodigo(NULL, s);
-                                 }
-                                 numParametros++;
-                         }
-                         else { 
-                                 if (noTemp->item.vs.passagem == SIMPLES) {
-                                         sprintf(s, "CRVL %d, %d", noTemp->nl, noTemp->item.vs.offset);
-                                         geraCodigo(NULL, s);
-                                 }
-                                 else if (noTemp->item.vs.passagem == VALOR) {
-                                         sprintf(s, "CRVL %d, %d", noTemp->nl, noTemp->item.vs.offset);
-                                         geraCodigo(NULL, s);
-                                 }
-                                 else if (noTemp->item.vs.passagem == REFERENCIA) {
-                                         sprintf(s, "CRVI %d, %d", noTemp->nl, noTemp->item.vs.offset);
-                                         geraCodigo(NULL, s);
-                                 } 
-                         }
+{ 
 
-         }
- //                        numParametros++;
- }
- | numero
+        if (noTemp) {
+                if ((proc) && numParametros >= proc->item.func.qtdeParametros ) {
+                        yyerror("Procedimento chamado com numero invalido de parametros.");
+                        exit(1);
+                }
+                if ((func) && numParametros > func->item.func.qtdeParametros ) {
+                        printf("esperado: %d, %d encontrados\n\n",func->item.func.qtdeParametros,numParametros);
+                        exit(1);
+                }
+                if ((proc) && proc->item.func.parametros[numParametros].passagem == REFERENCIA) {
+                        sprintf(s, "CREN %d, %d", noTemp->nl, noTemp->item.vs.offset);
+                        geraCodigo(NULL, s);
+                }
+                else 
+                        if ((func) && func->item.func.parametros[numParametros].passagem == REFERENCIA) {
+                                if (FLAG_CHAMADA){
+                                        sprintf(s, "CREN %d, %d", noTemp->nl, noTemp->item.vs.offset);
+                                        geraCodigo(NULL, s);}
+                                else{
+                                        sprintf(s, "CRVL %d, %d", noTemp->nl, noTemp->item.vs.offset);
+                                        geraCodigo(NULL, s);
+                                }
+                        }
+                        else { 
+                                if (noTemp->item.vs.passagem == REFERENCIA) {
+                                        sprintf(s, "CRVI %d, %d", noTemp->nl, noTemp->item.vs.offset);
+                                        geraCodigo(NULL, s);
+                                } else{
+
+                                        sprintf(s, "CRVL %d, %d", noTemp->nl, noTemp->item.vs.offset);
+                                        geraCodigo(NULL, s);
+                                }
+                        }
+        }
+}
+ | numero 
  {
 	sprintf(s, "CRCT %s", yytext);
 	geraCodigo(NULL, s);
@@ -741,6 +733,7 @@ chamada_funcao:
  //CALL
  identificador
  {
+  FLAG_CHAMADA = 1;
 	geraCodigo(NULL, "AMEM 1");
 	if (!noTemp) {
 		yyerror("funcao nao declarada.");
@@ -755,6 +748,7 @@ chamada_funcao:
 	sprintf(s, "CHPR %s, %d", func->item.func.rotulo, nivel);
 	geraCodigo(NULL, s);
 	func = NULL;
+  FLAG_CHAMADA = 0;
  }
 ;
 

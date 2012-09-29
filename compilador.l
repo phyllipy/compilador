@@ -141,12 +141,6 @@ read		{ simbolo = simb_read;
 				return READ;			           
 			}
 			
-call		{ simbolo = simb_call;
-				strncpy (token, yytext, TAM_TOKEN);
-				//IMPRIME(" call ");
-				return CALL;			           
-			}			
-
 ":="		{ simbolo = simb_atribuicao;
 				strncpy (token, yytext, TAM_TOKEN);
 				//IMPRIME("atribuicao ");
