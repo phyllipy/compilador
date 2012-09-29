@@ -108,6 +108,6 @@ void imprimePilha(pilha*);
 void preencherTipo(pilha*,int,int);
 
 //remove os itens do nivel lexico mais alto
-int removeElementos(pilha*);
+int removeElementos(pilha*,int);
 
 #endif

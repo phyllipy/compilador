@@ -79,7 +79,7 @@ bloco:
 }
 	comando_composto //TODO ='(
 {
-        offset = removeElementos(ts);
+        offset = removeElementos(ts,nivel);
         if (offset)
         {
                 sprintf(s,"DMEM %d",offset);
@@ -109,7 +109,7 @@ parte_declara_subrotinas_opt:
  |
 	{
 		nl++;
-   // nivel++;
+    nivel++;
 		offset = 0;
 	}
 	parte_declara_subrotinas
@@ -242,7 +242,7 @@ declaracao_procedimento:
     proc->item.func.parametros = (variavel*)malloc(sizeof(variavel*)*parametros->tamanho);
 
     push(ts,proc);
-    nivel++;
+    //nivel++;
     while (parametros->tamanho){
           param = pop(parametros);
 
@@ -280,7 +280,7 @@ declaracao_funcao: //TODO
     i = parametros->tamanho -1;
     func->item.func.parametros = (variavel*)malloc(sizeof(variavel*)*parametros->tamanho);
     push(ts,func);
-    nivel++;
+    //nivel++;
     while (parametros->tamanho){
           noTemp = pop(parametros);
           noTemp->item.vs.offset = offset;

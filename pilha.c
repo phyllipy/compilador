@@ -24,18 +24,30 @@ int alterarTipos(pilha *p,int offset, int tipo){
   }
   return count;
 }
-int removeElementos(pilha *p){
+int removeElementos(pilha *p,int nivelL){
         no * tmp = p->primeiro;
         no *aux;
         int count = 0;
-        int nl = tmp[p->tamanho-1].nl;
-        while (p->tamanho){
-                if (tmp[p->tamanho-1].nl == nl){
-                        aux =pop(p);
-                        if (aux->categoria == VS && aux->item.vs.passagem==SIMPLES)
-                                count++;
-                }else
+        //int nl = tmp[p->tamanho-1].nl;
+        int nl = nivelL;
+        while (p->tamanho ){
+                
+                //se for func ou proc, desempilha APENAS se estiver um nivel acima do nivel desejado
+                if (tmp[p->tamanho-1].categoria == FUNCAO || tmp[p->tamanho-1].categoria == PROCEDIMENTO){
+                        //verifica se o nivel lexico eh maior que o nivel que eu quero tirar
+                        if (tmp[p->tamanho-1].nl > nl){
+                                //se for, tira
+                                aux = pop(p);
+                        }else
                         break;
+                }
+                else
+                        if (tmp[p->tamanho-1].nl == nl){
+                                aux =pop(p);
+                                if (aux->categoria == VS && aux->item.vs.passagem==SIMPLES)
+                                        count++;
+                        }else
+                                break;
         }
         return count;
 }
